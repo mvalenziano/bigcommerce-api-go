@@ -1,12 +1,15 @@
 package bigcommerce
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -272,4 +275,45 @@ func (bc *Client) GetProductMetafields(productID int64) (map[string]Metafield, e
 		ret[mf.Key] = mf
 	}
 	return ret, nil
+}
+
+func (bc *Client) CreateProduct(payload *Product) (*Product, error) {
+	var b []byte
+	prod := &payload
+	b, _ = json.Marshal(prod)
+	req := bc.getAPIRequest(http.MethodPost, "/v3/catalog/products", bytes.NewBuffer(b))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		if res.StatusCode == http.StatusUnprocessableEntity {
+			var errResp ErrorResult
+			err = json.Unmarshal(body, &errResp)
+			if err != nil {
+				log.Printf("Error: %s\nResult: %s", err, string(body))
+				return nil, err
+			}
+			if len(errResp.Errors) > 0 {
+				errors := []string{}
+				for _, e := range errResp.Errors {
+					errors = append(errors, e)
+				}
+				return nil, fmt.Errorf("%s", strings.Join(errors, ", "))
+			}
+			return nil, errors.New("unknown error")
+		}
+		log.Printf("Error: %s\nResult: %s", err, string(body))
+		return nil, err
+	}
+	var productResponse struct {
+		Data Product `json:"data"`
+	}
+	err = json.Unmarshal(body, &productResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &productResponse.Data, nil
 }
