@@ -53,8 +53,8 @@ type Product struct {
 	TotalSold               int           `json:"total_sold,omitempty"`
 	FixedCostShippingPrice  float64       `json:"fixed_cost_shipping_price,omitempty"`
 	IsFreeShipping          bool          `json:"is_free_shipping,omitempty"`
-	IsVisible               bool          `json:"is_visible,omitempty"`
-	IsFeatured              bool          `json:"is_featured,omitempty"`
+	IsVisible               bool          `json:"is_visible"`
+	IsFeatured              bool          `json:"is_featured"`
 	RelatedProducts         []int         `json:"related_products,omitempty"`
 	Warranty                string        `json:"warranty,omitempty"`
 	BinPickingNumber        string        `json:"bin_picking_number,omitempty"`
@@ -282,6 +282,60 @@ func (bc *Client) CreateProduct(payload *Product) (*Product, error) {
 	prod := &payload
 	b, _ = json.Marshal(prod)
 	req := bc.getAPIRequest(http.MethodPost, "/v3/catalog/products", bytes.NewBuffer(b))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		if res.StatusCode == http.StatusUnprocessableEntity {
+			var errResp ErrorResult
+			err = json.Unmarshal(body, &errResp)
+			if err != nil {
+				log.Printf("Error: %s\nResult: %s", err, string(body))
+				return nil, err
+			}
+			if len(errResp.Errors) > 0 {
+				errors := []string{}
+				for _, e := range errResp.Errors {
+					errors = append(errors, e)
+				}
+				return nil, fmt.Errorf("%s", strings.Join(errors, ", "))
+			}
+			return nil, errors.New("unknown error")
+		}
+		log.Printf("Error: %s\nResult: %s", err, string(body))
+		return nil, err
+	}
+	var productResponse struct {
+		Data Product `json:"data"`
+	}
+	err = json.Unmarshal(body, &productResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &productResponse.Data, nil
+}
+
+// Update a product based on SKU and not on ID
+func (bc *Client) UpdateProductBySku(payload *Product) (*Product, error) {
+	var b []byte
+	prod := &payload
+
+	// retrieve product ID from BigCommerce
+	searchCriteria := map[string]string{
+		"sku": payload.Sku,
+	}
+	productsArray, err := bc.GetAllProducts(searchCriteria)
+	// product doens't exists
+	if err != nil {
+		return nil, err
+	}
+	prodId := strconv.Itoa(int(productsArray[0].ID))
+
+	b, _ = json.Marshal(prod)
+	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/"+prodId, bytes.NewBuffer(b))
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
