@@ -29,14 +29,14 @@ type Product struct {
 	Type                    string        `json:"type,omitempty"`
 	Sku                     string        `json:"sku,omitempty"`
 	Description             string        `json:"description,omitempty"`
-	Weight                  float64       `json:"weight,omitempty"`
-	Width                   float64       `json:"width,omitempty"`
-	Depth                   float64       `json:"depth,omitempty"`
-	Height                  float64       `json:"height,omitempty"`
-	Price                   float64       `json:"price,omitempty"`
-	CostPrice               float64       `json:"cost_price,omitempty"`
-	RetailPrice             float64       `json:"retail_price,omitempty"`
-	SalePrice               float64       `json:"sale_price,omitempty"`
+	Weight                  *float64      `json:"weight,omitempty"`
+	Width                   *float64      `json:"width,omitempty"`
+	Depth                   *float64      `json:"depth,omitempty"`
+	Height                  *float64      `json:"height,omitempty"`
+	Price                   *float64      `json:"price,omitempty"`
+	CostPrice               *float64      `json:"cost_price,omitempty"`
+	RetailPrice             *float64      `json:"retail_price,omitempty"`
+	SalePrice               float64       `json:"sale_price"`
 	MapPrice                float64       `json:"map_price,omitempty"`
 	TaxClassID              int64         `json:"tax_class_id,omitempty"`
 	ProductTaxCode          string        `json:"product_tax_code,omitempty"`
@@ -332,9 +332,16 @@ func (bc *Client) UpdateProductBySku(payload *Product) (*Product, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Println("GET ALL PRODUCTS RESULT:")
+	log.Println(productsArray)
+	if len(productsArray) == 0 {
+		return nil, errors.New("Empty response back on getting product by sku: " + payload.Sku)
+	}
 	prodId := strconv.Itoa(int(productsArray[0].ID))
 
 	b, _ = json.Marshal(prod)
+	log.Println("payload for prod:")
+	log.Println(string(b))
 	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/"+prodId, bytes.NewBuffer(b))
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
