@@ -221,6 +221,47 @@ func (bc *Client) GetProducts(args map[string]string, page int) ([]Product, bool
 	return pp.Data, pp.Meta.Pagination.CurrentPage < pp.Meta.Pagination.TotalPages, nil
 }
 
+func (bc *Client) GetVariants(args map[string]string, page int) ([]Product, bool, error) {
+	fpart := ""
+	for k, v := range args {
+		fpart += "&" + k + "=" + v
+	}
+	url := "/v3/catalog/variants?page=" + strconv.Itoa(page) + fpart
+
+	req := bc.getAPIRequest(http.MethodGet, url, nil)
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, false, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode == http.StatusNoContent {
+		return nil, false, ErrNoContent
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, false, err
+	}
+	var pp struct {
+		Status int       `json:"status"`
+		Title  string    `json:"title"`
+		Data   []Product `json:"data"`
+		Meta   struct {
+			Pagination Pagination `json:"pagination"`
+		} `json:"meta"`
+	}
+	err = json.Unmarshal(body, &pp)
+	if err != nil {
+		return nil, false, err
+	}
+	//	log.Printf("%d products (%+v)", len(pp.Data), pp.Meta.Pagination)
+
+	if pp.Status != 0 {
+		return nil, false, errors.New(pp.Title)
+	}
+	return pp.Data, pp.Meta.Pagination.CurrentPage < pp.Meta.Pagination.TotalPages, nil
+}
+
 // GetProductByID gets a product from BigCommerce by ID
 // productID: BigCommerce product ID to get
 func (bc *Client) GetProductByID(productID int64) (*Product, error) {
