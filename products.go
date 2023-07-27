@@ -449,3 +449,65 @@ func (bc *Client) UpdateProductBySku(payload *Product) (*Product, error) {
 	}
 	return &productResponse.Data, nil
 }
+
+// Update a product based on SKU and not on ID
+func (bc *Client) UpdateVariantBySku(payload *Variant) (*Variant, error) {
+	var b []byte
+	prod := &payload
+
+	// retrieve product ID from BigCommerce
+	searchCriteria := map[string]string{
+		"sku": payload.Sku,
+	}
+	variantsArray, _, err := bc.GetVariants(searchCriteria, 1)
+	// product doens't exists
+	if err != nil {
+		return nil, err
+	}
+	log.Println("GET VARIANTS RESULT:")
+	log.Println(variantsArray)
+	if len(variantsArray) == 0 {
+		return nil, errors.New("Empty response back on getting variant by sku: " + payload.Sku)
+	}
+	variantId := strconv.Itoa(int(variantsArray[0].ID))
+	parentProductId := strconv.Itoa(int(variantsArray[0].ProductID))
+
+	b, _ = json.Marshal(prod)
+	log.Println("payload for variant:")
+	log.Println(string(b))
+	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/"+parentProductId+"/variants/"+variantId, bytes.NewBuffer(b))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		if res.StatusCode == http.StatusUnprocessableEntity {
+			var errResp ErrorResult
+			err = json.Unmarshal(body, &errResp)
+			if err != nil {
+				log.Printf("Error: %s\nResult: %s", err, string(body))
+				return nil, err
+			}
+			if len(errResp.Errors) > 0 {
+				errors := []string{}
+				for _, e := range errResp.Errors {
+					errors = append(errors, e)
+				}
+				return nil, fmt.Errorf("%s", strings.Join(errors, ", "))
+			}
+			return nil, errors.New("unknown error")
+		}
+		log.Printf("Error: %s\nResult: %s", err, string(body))
+		return nil, err
+	}
+	var variantResponse struct {
+		Data Variant `json:"data"`
+	}
+	err = json.Unmarshal(body, &variantResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &variantResponse.Data, nil
+}
