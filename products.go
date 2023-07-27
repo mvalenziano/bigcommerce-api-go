@@ -136,6 +136,36 @@ type Product struct {
 	Modifiers        []interface{} `json:"modifiers,omitempty"`
 }
 
+type Variant struct {
+	ID                        int64         `json:"id,omitempty"`
+	ProductID                 int64         `json:"product_id,omitempty"`
+	Sku                       string        `json:"sku,omitempty"`
+	SkuID                     interface{}   `json:"sku_id,omitempty"`
+	Price                     float64       `json:"price,omitempty"`
+	CalculatedPrice           float64       `json:"calculated_price,omitempty"`
+	SalePrice                 float64       `json:"sale_price,omitempty"`
+	RetailPrice               float64       `json:"retail_price,omitempty"`
+	MapPrice                  float64       `json:"map_price,omitempty"`
+	Weight                    float64       `json:"weight,omitempty"`
+	Width                     int           `json:"width,omitempty"`
+	Height                    int           `json:"height,omitempty"`
+	Depth                     int           `json:"depth,omitempty"`
+	IsFreeShipping            bool          `json:"is_free_shipping,omitempty"`
+	FixedCostShippingPrice    float64       `json:"fixed_cost_shipping_price,omitempty"`
+	CalculatedWeight          float64       `json:"calculated_weight,omitempty"`
+	PurchasingDisabled        bool          `json:"purchasing_disabled,omitempty"`
+	PurchasingDisabledMessage string        `json:"purchasing_disabled_message,omitempty"`
+	ImageURL                  string        `json:"image_url,omitempty"`
+	CostPrice                 float64       `json:"cost_price,omitempty"`
+	Upc                       string        `json:"upc,omitempty"`
+	Mpn                       string        `json:"mpn,omitempty"`
+	Gtin                      string        `json:"gtin,omitempty"`
+	InventoryLevel            int           `json:"inventory_level,omitempty"`
+	InventoryWarningLevel     int           `json:"inventory_warning_level,omitempty"`
+	BinPickingNumber          string        `json:"bin_picking_number,omitempty"`
+	OptionValues              []interface{} `json:"option_values,omitempty"`
+}
+
 // Metafield is a struct representing a BigCommerce product metafield
 type Metafield struct {
 	ID            int64     `json:"id,omitempty"`
@@ -221,7 +251,7 @@ func (bc *Client) GetProducts(args map[string]string, page int) ([]Product, bool
 	return pp.Data, pp.Meta.Pagination.CurrentPage < pp.Meta.Pagination.TotalPages, nil
 }
 
-func (bc *Client) GetVariants(args map[string]string, page int) ([]Product, bool, error) {
+func (bc *Client) GetVariants(args map[string]string, page int) ([]Variant, bool, error) {
 	fpart := ""
 	for k, v := range args {
 		fpart += "&" + k + "=" + v
@@ -245,7 +275,7 @@ func (bc *Client) GetVariants(args map[string]string, page int) ([]Product, bool
 	var pp struct {
 		Status int       `json:"status"`
 		Title  string    `json:"title"`
-		Data   []Product `json:"data"`
+		Data   []Variant `json:"data"`
 		Meta   struct {
 			Pagination Pagination `json:"pagination"`
 		} `json:"meta"`
