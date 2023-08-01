@@ -38,7 +38,7 @@ type Product struct {
 	RetailPrice             float64       `json:"retail_price,omitempty"`
 	SalePrice               float64       `json:"sale_price"`
 	MapPrice                float64       `json:"map_price,omitempty"`
-	TaxClassID              int64         `json:"tax_class_id,omitempty"`
+	TaxClassID              int64         `json:"tax_class_id"`
 	ProductTaxCode          string        `json:"product_tax_code,omitempty"`
 	CalculatedPrice         float64       `json:"calculated_price,omitempty"`
 	Categories              []interface{} `json:"categories,omitempty"`
