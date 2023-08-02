@@ -511,3 +511,19 @@ func (bc *Client) UpdateVariantBySku(payload *Variant) (*Variant, error) {
 	}
 	return &variantResponse.Data, nil
 }
+
+// deletes a product from a specific channel
+func (bc *Client) DeleteProductFromChannel(productId int64, channelId int64) (bool, error) {
+	req := bc.getAPIRequest(http.MethodDelete, fmt.Sprintf("/v3/catalog/products/channel-assignments?product_id:in=%d&channel_id:in=%d", productId, channelId), nil)
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode > 200 && res.StatusCode < 300 {
+		return true, nil
+	}
+
+	return false, nil
+}
