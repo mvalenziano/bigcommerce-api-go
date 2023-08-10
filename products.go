@@ -143,7 +143,7 @@ type Variant struct {
 	SkuID                     interface{}   `json:"sku_id,omitempty"`
 	Price                     float64       `json:"price,omitempty"`
 	CalculatedPrice           float64       `json:"calculated_price,omitempty"`
-	SalePrice                 float64       `json:"sale_price,omitempty"`
+	SalePrice                 float64       `json:"sale_price"`
 	RetailPrice               float64       `json:"retail_price,omitempty"`
 	MapPrice                  float64       `json:"map_price,omitempty"`
 	Weight                    float64       `json:"weight,omitempty"`
