@@ -234,21 +234,20 @@ type OrderShipmentItem struct {
 }
 
 type OrderShipmentResponse struct {
-	ID                   int64                `json:"id"`
-	OrderID              int64                `json:"order_id"`
-	CustomerID           int64                `json:"customer_id"`
-	OrderAddressID       int64                `json:"order_address_id"`
-	DateCreated          string               `json:"date_created"`
-	TrackingNumber       string               `json:"tracking_number"`
-	MerchantShippingCost float32              `json:"merchant_shipping_cost,omitempty"`
-	ShippingMethod       string               `json:"shipping_method,omitempty"`
-	Comments             string               `json:"comments,omitempty"`
-	ShippingProvider     string               `json:"shipping_provider,omitempty"`
-	TrackingCarrier      string               `json:"tracking_carrier,omitempty"`
-	TrackingLink         string               `json:"tracking_link,omitempty"`
-	BillingAddress       OrderShippingAddress `json:"billing_address,omitempty"`
-	ShippingAddress      OrderShippingAddress `json:"shipping_address,omitempty"`
-	Items                []OrderShipmentItem  `json:"items"`
+	ID               int64                `json:"id"`
+	OrderID          int64                `json:"order_id"`
+	CustomerID       int64                `json:"customer_id"`
+	OrderAddressID   int64                `json:"order_address_id"`
+	DateCreated      string               `json:"date_created"`
+	TrackingNumber   string               `json:"tracking_number"`
+	ShippingMethod   string               `json:"shipping_method,omitempty"`
+	Comments         string               `json:"comments,omitempty"`
+	ShippingProvider string               `json:"shipping_provider,omitempty"`
+	TrackingCarrier  string               `json:"tracking_carrier,omitempty"`
+	TrackingLink     string               `json:"tracking_link,omitempty"`
+	BillingAddress   OrderShippingAddress `json:"billing_address,omitempty"`
+	ShippingAddress  OrderShippingAddress `json:"shipping_address,omitempty"`
+	Items            []OrderShipmentItem  `json:"items"`
 }
 
 // GetOrders returns all orders using filters
