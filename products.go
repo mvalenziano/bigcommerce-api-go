@@ -45,9 +45,9 @@ type Product struct {
 	BrandID                 int64         `json:"brand_id,omitempty"`
 	OptionSetID             interface{}   `json:"option_set_id,omitempty"`
 	OptionSetDisplay        string        `json:"option_set_display,omitempty"`
-	InventoryLevel          int           `json:"inventory_level,omitempty"`
+	InventoryLevel          int           `json:"inventory_level"`
 	InventoryWarningLevel   int           `json:"inventory_warning_level,omitempty"`
-	InventoryTracking       string        `json:"inventory_tracking,omitempty"`
+	InventoryTracking       string        `json:"inventory_tracking"`
 	ReviewsRatingSum        int           `json:"reviews_rating_sum,omitempty"`
 	ReviewsCount            int           `json:"reviews_count,omitempty"`
 	TotalSold               int           `json:"total_sold,omitempty"`
