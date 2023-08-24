@@ -180,6 +180,11 @@ type Metafield struct {
 	PermissionSet string    `json:"permission_set,omitempty"`
 }
 
+type ChannelAssignment struct {
+	ProductID int64 `json:"product_id,omitempty"`
+	ChannelID int64 `json:"channel_id,omitempty"`
+}
+
 // GetAllProducts gets all products from BigCommerce
 // args is a key-value map of additional arguments to pass to the API
 func (bc *Client) GetAllProducts(args map[string]string) ([]Product, error) {
@@ -522,6 +527,30 @@ func (bc *Client) DeleteProductFromChannel(productId int64, channelId int64) (bo
 	defer res.Body.Close()
 
 	if res.StatusCode > 200 && res.StatusCode < 300 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// deletes a product from a specific channel
+func (bc *Client) AddProductToChannel(productId int64, channelId int64) (bool, error) {
+	var payload []ChannelAssignment
+	var channelAssignment ChannelAssignment
+	channelAssignment.ProductID = productId
+	channelAssignment.ChannelID = channelId
+
+	payload = append(payload, channelAssignment)
+	b, _ := json.Marshal(&payload)
+
+	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/channel-assignments", bytes.NewBuffer(b))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode >= 200 && res.StatusCode < 300 {
 		return true, nil
 	}
 
