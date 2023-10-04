@@ -160,7 +160,7 @@ type Variant struct {
 	Upc                       string        `json:"upc,omitempty"`
 	Mpn                       string        `json:"mpn,omitempty"`
 	Gtin                      string        `json:"gtin,omitempty"`
-	InventoryLevel            int           `json:"inventory_level,omitempty"`
+	InventoryLevel            int           `json:"inventory_level"`
 	InventoryWarningLevel     int           `json:"inventory_warning_level,omitempty"`
 	BinPickingNumber          string        `json:"bin_picking_number,omitempty"`
 	OptionValues              []interface{} `json:"option_values,omitempty"`
@@ -533,7 +533,7 @@ func (bc *Client) DeleteProductFromChannel(productId int64, channelId int64) (bo
 	return false, nil
 }
 
-// deletes a product from a specific channel
+// add a product to a specific channel
 func (bc *Client) AddProductToChannel(productId int64, channelId int64) (bool, error) {
 	var payload []ChannelAssignment
 	var channelAssignment ChannelAssignment
