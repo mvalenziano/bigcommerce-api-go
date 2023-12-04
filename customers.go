@@ -90,7 +90,7 @@ type Authentication struct {
 type FormField struct {
 	CustomerID int64  `json:"customer_id"`
 	Name       string `json:"name"`
-	Value      string `json:"value"`
+	Value      any    `json:"value"`
 }
 
 // ValidateCredentials returns customer ID or error (i.e. ErrNotfound) if the provided credentials are valid in BigCommerce

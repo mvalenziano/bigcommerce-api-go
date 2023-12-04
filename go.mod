@@ -1,6 +1,6 @@
 module github.com/mvalenziano/bigcommerce-api-go
 
-go 1.17
+go 1.18
 
 require (
 	github.com/go-chi/jwtauth/v5 v5.0.2
