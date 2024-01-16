@@ -408,16 +408,14 @@ func (bc *Client) UpdateProductBySku(payload *Product) (*Product, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("GET ALL PRODUCTS RESULT:")
-	log.Println(productsArray)
+
 	if len(productsArray) == 0 {
 		return nil, errors.New("Empty response back on getting product by sku: " + payload.Sku)
 	}
 	prodId := strconv.Itoa(int(productsArray[0].ID))
 
 	b, _ = json.Marshal(prod)
-	log.Println("payload for prod:")
-	log.Println(string(b))
+
 	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/"+prodId, bytes.NewBuffer(b))
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
