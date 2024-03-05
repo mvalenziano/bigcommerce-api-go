@@ -136,6 +136,16 @@ type Product struct {
 	Modifiers        []interface{} `json:"modifiers,omitempty"`
 }
 
+type ProductInventory struct {
+	ID                      int64  `json:"id,omitempty"`
+	InventoryLevel          int    `json:"inventory_level"`
+	InventoryWarningLevel   int    `json:"inventory_warning_level,omitempty"`
+	InventoryTracking       string `json:"inventory_tracking"`
+	IsVisible               bool   `json:"is_visible"`
+	Availability            string `json:"availability,omitempty"`
+	AvailabilityDescription string `json:"availability_description,omitempty"`
+}
+
 type Variant struct {
 	ID                        int64         `json:"id,omitempty"`
 	ProductID                 int64         `json:"product_id,omitempty"`
@@ -164,6 +174,13 @@ type Variant struct {
 	InventoryWarningLevel     int           `json:"inventory_warning_level,omitempty"`
 	BinPickingNumber          string        `json:"bin_picking_number,omitempty"`
 	OptionValues              []interface{} `json:"option_values,omitempty"`
+}
+
+type VariantInventory struct {
+	ID                    int64 `json:"id,omitempty"`
+	ProductID             int64 `json:"product_id,omitempty"`
+	InventoryLevel        int   `json:"inventory_level"`
+	InventoryWarningLevel int   `json:"inventory_warning_level,omitempty"`
 }
 
 // Metafield is a struct representing a BigCommerce product metafield
@@ -453,6 +470,51 @@ func (bc *Client) UpdateProductBySku(payload *Product) (*Product, error) {
 	return &productResponse.Data, nil
 }
 
+// Update a product inventory data based on ID
+func (bc *Client) UpdateProductInventory(prodInventoryPayload *ProductInventory) (*Product, error) {
+	var b []byte
+
+	// make API request path
+	path := fmt.Sprintf("/v3/catalog/products/%d", prodInventoryPayload.ID)
+
+	// make the API request
+	req := bc.getAPIRequest(http.MethodPut, path, bytes.NewBuffer(b))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		if res.StatusCode == http.StatusUnprocessableEntity {
+			var errResp ErrorResult
+			err = json.Unmarshal(body, &errResp)
+			if err != nil {
+				log.Printf("Error: %s\nResult: %s", err, string(body))
+				return nil, err
+			}
+			if len(errResp.Errors) > 0 {
+				errors := []string{}
+				for _, e := range errResp.Errors {
+					errors = append(errors, e)
+				}
+				return nil, fmt.Errorf("%s", strings.Join(errors, ", "))
+			}
+			return nil, errors.New("unknown error")
+		}
+		log.Printf("Error: %s\nResult: %s", err, string(body))
+		return nil, err
+	}
+	var productResponse struct {
+		Data Product `json:"data"`
+	}
+	err = json.Unmarshal(body, &productResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &productResponse.Data, nil
+}
+
 // Update a product based on SKU and not on ID
 func (bc *Client) UpdateVariantBySku(payload *Variant) (*Variant, error) {
 	var b []byte
@@ -467,8 +529,7 @@ func (bc *Client) UpdateVariantBySku(payload *Variant) (*Variant, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("GET VARIANTS RESULT:")
-	log.Println(variantsArray)
+
 	if len(variantsArray) == 0 {
 		return nil, errors.New("Empty response back on getting variant by sku: " + payload.Sku)
 	}
@@ -478,6 +539,50 @@ func (bc *Client) UpdateVariantBySku(payload *Variant) (*Variant, error) {
 	b, _ = json.Marshal(prod)
 	log.Println("payload for variant:")
 	log.Println(string(b))
+	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/"+parentProductId+"/variants/"+variantId, bytes.NewBuffer(b))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		if res.StatusCode == http.StatusUnprocessableEntity {
+			var errResp ErrorResult
+			err = json.Unmarshal(body, &errResp)
+			if err != nil {
+				log.Printf("Error: %s\nResult: %s", err, string(body))
+				return nil, err
+			}
+			if len(errResp.Errors) > 0 {
+				errors := []string{}
+				for _, e := range errResp.Errors {
+					errors = append(errors, e)
+				}
+				return nil, fmt.Errorf("%s", strings.Join(errors, ", "))
+			}
+			return nil, errors.New("unknown error")
+		}
+		log.Printf("Error: %s\nResult: %s", err, string(body))
+		return nil, err
+	}
+	var variantResponse struct {
+		Data Variant `json:"data"`
+	}
+	err = json.Unmarshal(body, &variantResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &variantResponse.Data, nil
+}
+
+// Update a product inventory data based on ID
+func (bc *Client) UpdateVariantInventory(variantPayload *VariantInventory) (*Variant, error) {
+	var b []byte
+
+	variantId := strconv.Itoa(int(variantPayload.ID))
+	parentProductId := strconv.Itoa(int(variantPayload.ProductID))
+
 	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/"+parentProductId+"/variants/"+variantId, bytes.NewBuffer(b))
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
