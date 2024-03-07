@@ -477,6 +477,7 @@ func (bc *Client) UpdateProductInventory(prodInventoryPayload *ProductInventory)
 	// make API request path
 	path := fmt.Sprintf("/v3/catalog/products/%d", prodInventoryPayload.ID)
 
+	b, _ = json.Marshal(prodInventoryPayload)
 	// make the API request
 	req := bc.getAPIRequest(http.MethodPut, path, bytes.NewBuffer(b))
 	res, err := bc.HTTPClient.Do(req)
@@ -583,6 +584,7 @@ func (bc *Client) UpdateVariantInventory(variantPayload *VariantInventory) (*Var
 	variantId := strconv.Itoa(int(variantPayload.ID))
 	parentProductId := strconv.Itoa(int(variantPayload.ProductID))
 
+	b, _ = json.Marshal(variantPayload)
 	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/"+parentProductId+"/variants/"+variantId, bytes.NewBuffer(b))
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
