@@ -146,6 +146,12 @@ type ProductInventory struct {
 	AvailabilityDescription string `json:"availability_description,omitempty"`
 }
 
+// create struct to update only sale prices
+type ProductSalePrice struct {
+	ID        int64   `json:"id,omitempty"`
+	SalePrice float64 `json:"sale_price"`
+}
+
 type Variant struct {
 	ID                        int64         `json:"id,omitempty"`
 	ProductID                 int64         `json:"product_id,omitempty"`
@@ -181,6 +187,12 @@ type VariantInventory struct {
 	ProductID             int64 `json:"product_id,omitempty"`
 	InventoryLevel        int   `json:"inventory_level"`
 	InventoryWarningLevel int   `json:"inventory_warning_level,omitempty"`
+}
+
+type VariantSalePrice struct {
+	ID        int64   `json:"id,omitempty"`
+	ProductID int64   `json:"product_id,omitempty"`
+	SalePrice float64 `json:"sale_price"`
 }
 
 // Metafield is a struct representing a BigCommerce product metafield
@@ -516,6 +528,52 @@ func (bc *Client) UpdateProductInventory(prodInventoryPayload *ProductInventory)
 	return &productResponse.Data, nil
 }
 
+// Update a product sale price based on ID
+func (bc *Client) UpdateProductSalePrice(prodSalePricePayload *ProductSalePrice) (*Product, error) {
+	var b []byte
+
+	// make API request path
+	path := fmt.Sprintf("/v3/catalog/products/%d", prodSalePricePayload.ID)
+
+	b, _ = json.Marshal(prodSalePricePayload)
+	// make the API request
+	req := bc.getAPIRequest(http.MethodPut, path, bytes.NewBuffer(b))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		if res.StatusCode == http.StatusUnprocessableEntity {
+			var errResp ErrorResult
+			err = json.Unmarshal(body, &errResp)
+			if err != nil {
+				log.Printf("Error: %s\nResult: %s", err, string(body))
+				return nil, err
+			}
+			if len(errResp.Errors) > 0 {
+				errors := []string{}
+				for _, e := range errResp.Errors {
+					errors = append(errors, e)
+				}
+				return nil, fmt.Errorf("%s", strings.Join(errors, ", "))
+			}
+			return nil, errors.New("unknown error")
+		}
+		log.Printf("Error: %s\nResult: %s", err, string(body))
+		return nil, err
+	}
+	var productResponse struct {
+		Data Product `json:"data"`
+	}
+	err = json.Unmarshal(body, &productResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &productResponse.Data, nil
+}
+
 // Update a product based on SKU and not on ID
 func (bc *Client) UpdateVariantBySku(payload *Variant) (*Variant, error) {
 	var b []byte
@@ -585,6 +643,50 @@ func (bc *Client) UpdateVariantInventory(variantPayload *VariantInventory) (*Var
 	parentProductId := strconv.Itoa(int(variantPayload.ProductID))
 
 	b, _ = json.Marshal(variantPayload)
+	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/"+parentProductId+"/variants/"+variantId, bytes.NewBuffer(b))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		if res.StatusCode == http.StatusUnprocessableEntity {
+			var errResp ErrorResult
+			err = json.Unmarshal(body, &errResp)
+			if err != nil {
+				log.Printf("Error: %s\nResult: %s", err, string(body))
+				return nil, err
+			}
+			if len(errResp.Errors) > 0 {
+				errors := []string{}
+				for _, e := range errResp.Errors {
+					errors = append(errors, e)
+				}
+				return nil, fmt.Errorf("%s", strings.Join(errors, ", "))
+			}
+			return nil, errors.New("unknown error")
+		}
+		log.Printf("Error: %s\nResult: %s", err, string(body))
+		return nil, err
+	}
+	var variantResponse struct {
+		Data Variant `json:"data"`
+	}
+	err = json.Unmarshal(body, &variantResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &variantResponse.Data, nil
+}
+
+func (bc *Client) UpdateVariantSalePrice(variantSalePricePayload *VariantSalePrice) (*Variant, error) {
+	var b []byte
+
+	variantId := strconv.Itoa(int(variantSalePricePayload.ID))
+	parentProductId := strconv.Itoa(int(variantSalePricePayload.ProductID))
+
+	b, _ = json.Marshal(variantSalePricePayload)
 	req := bc.getAPIRequest(http.MethodPut, "/v3/catalog/products/"+parentProductId+"/variants/"+variantId, bytes.NewBuffer(b))
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
