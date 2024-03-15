@@ -45,16 +45,16 @@ type Product struct {
 	BrandID                 int64         `json:"brand_id,omitempty"`
 	OptionSetID             interface{}   `json:"option_set_id,omitempty"`
 	OptionSetDisplay        string        `json:"option_set_display,omitempty"`
-	InventoryLevel          int           `json:"inventory_level"`
+	InventoryLevel          int           `json:"inventory_level,omitempty"`
 	InventoryWarningLevel   int           `json:"inventory_warning_level,omitempty"`
-	InventoryTracking       string        `json:"inventory_tracking"`
+	InventoryTracking       string        `json:"inventory_tracking,omitempty"`
 	ReviewsRatingSum        int           `json:"reviews_rating_sum,omitempty"`
 	ReviewsCount            int           `json:"reviews_count,omitempty"`
 	TotalSold               int           `json:"total_sold,omitempty"`
 	FixedCostShippingPrice  float64       `json:"fixed_cost_shipping_price,omitempty"`
 	IsFreeShipping          bool          `json:"is_free_shipping,omitempty"`
 	IsVisible               bool          `json:"is_visible"`
-	IsFeatured              bool          `json:"is_featured"`
+	IsFeatured              bool          `json:"is_featured,omitempty"`
 	RelatedProducts         []int         `json:"related_products,omitempty"`
 	Warranty                string        `json:"warranty,omitempty"`
 	BinPickingNumber        string        `json:"bin_picking_number,omitempty"`
