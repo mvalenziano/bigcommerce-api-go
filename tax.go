@@ -7,10 +7,10 @@ import (
 )
 
 type TaxZone struct {
-	ID                    int                    `json:"id"`
-	Name                  string                 `json:"name"`
-	Enabled               bool                   `json:"enabled"`
-	ShopperTargetSettings []ShopperTargetSetting `json:"shopper_target_settings"`
+	ID                    int                  `json:"id"`
+	Name                  string               `json:"name"`
+	Enabled               bool                 `json:"enabled"`
+	ShopperTargetSettings ShopperTargetSetting `json:"shopper_target_settings"`
 }
 
 type ShopperTargetSetting struct {
