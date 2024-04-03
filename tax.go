@@ -26,6 +26,11 @@ type Location struct {
 
 type TaxClassRate struct {
 	ClassRates []ClassRate `json:"class_rates"`
+	Enabled    bool        `json:"enabled"`
+	ID         int         `json:"id"`
+	Name       string      `json:"name"`
+	Priority   int         `json:"priority"`
+	TaxZoneId  int         `json:"tax_zone_id"`
 }
 
 type ClassRate struct {
