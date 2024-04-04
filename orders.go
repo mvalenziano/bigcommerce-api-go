@@ -250,6 +250,60 @@ type OrderShipmentResponse struct {
 	Items            []OrderShipmentItem  `json:"items"`
 }
 
+type AVSResult struct {
+	Code        string `json:"code"`
+	Message     string `json:"message"`
+	StreetMatch string `json:"street_match"`
+	PostalMatch string `json:"postal_match"`
+}
+
+type CVVResult struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type GiftCertificate struct {
+	Code             string  `json:"code"`
+	OriginalBalance  float64 `json:"original_balance"`
+	StartingBalance  float64 `json:"starting_balance"`
+	RemainingBalance float64 `json:"remaining_balance"`
+	Status           string  `json:"status"`
+}
+
+type CreditCard struct {
+	CardType        string `json:"card_type"`
+	CardIIN         string `json:"card_iin"`
+	CardLast4       string `json:"card_last4"`
+	CardExpiryMonth int    `json:"card_expiry_month"`
+	CardExpiryYear  int    `json:"card_expiry_year"`
+}
+
+type OrderTransaction struct {
+	ID                        int64            `json:"id"`
+	OrderID                   string           `json:"order_id"`
+	Event                     string           `json:"event"`
+	Method                    string           `json:"method"`
+	Amount                    float64          `json:"amount"`
+	Currency                  string           `json:"currency"`
+	Gateway                   string           `json:"gateway"`
+	GatewayTransactionID      string           `json:"gateway_transaction_id"`
+	PaymentMethodID           string           `json:"payment_method_id"`
+	Status                    string           `json:"status"`
+	Test                      bool             `json:"test"`
+	FraudReview               bool             `json:"fraud_review"`
+	ReferenceTransactionID    string           `json:"reference_transaction_id"`
+	DateCreated               string           `json:"date_created"`
+	AVSResult                 *AVSResult       `json:"avs_result"`
+	CVVResult                 *CVVResult       `json:"cvv_result"`
+	CreditCard                *CreditCard      `json:"credit_card"`
+	GiftCertificate           *GiftCertificate `json:"gift_certificate"`
+	StoreCredit               interface{}      `json:"store_credit"`
+	Offline                   interface{}      `json:"offline"`
+	Custom                    interface{}      `json:"custom"`
+	PaymentInstrumentToken    interface{}      `json:"payment_instrument_token"`
+	CustomProviderFieldResult interface{}      `json:"custom_provider_field_result"`
+}
+
 // GetOrders returns all orders using filters
 // filters: request query parameters for BigCommerce orders endpoint, for example {"customer_id": "41"}
 func (bc *Client) GetOrders(filters map[string]string) ([]Order, error) {
@@ -420,4 +474,31 @@ func (bc *Client) GetOrderCoupons(orderID int64) ([]OrderCoupon, error) {
 		return nil, err
 	}
 	return coupons, nil
+}
+
+// GetOrderTransactions returns all transactions for a given order
+func (bc *Client) GetOrderTransactions(orderID int64) ([]OrderTransaction, error) {
+	url := "/v3/orders/" + strconv.FormatInt(orderID, 10) + "/transactions"
+
+	req := bc.getAPIRequest(http.MethodGet, url, nil)
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		Data []OrderTransaction `json:"data"`
+	}
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return nil, err
+	}
+	return response.Data, nil
 }
