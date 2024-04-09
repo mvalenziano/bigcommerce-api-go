@@ -214,9 +214,9 @@ type OrderCoupon struct {
 	CouponID int64  `json:"coupon_id"`
 	OrderID  int64  `json:"order_id"`
 	Code     string `json:"code"`
-	Amount   int    `json:"amount"`
+	Amount   string `json:"amount"`
 	Type     int    `json:"type"`
-	Discount int    `json:"discount"`
+	Discount string `json:"discount"`
 }
 
 type OrderShipment struct {
