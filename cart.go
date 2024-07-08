@@ -56,6 +56,7 @@ type LineItem struct {
 	Coupons           interface{} `json:"coupons,omitempty"`
 	DiscountAmount    float64     `json:"discount_amount,omitempty"`
 	CouponAmount      float64     `json:"coupon_amount,omitempty"`
+	OriginalPrice     float64     `json:"original_price,omitempty"`
 	ListPrice         float64     `json:"list_price,omitempty"`
 	SalePrice         float64     `json:"sale_price,omitempty"`
 	ExtendedListPrice float64     `json:"extended_list_price,omitempty"`
@@ -150,8 +151,9 @@ func (bc *Client) CartAddItems(cartID string, items []LineItem) (*Cart, error) {
 
 // EditItem edits a line item in a cart, returns the updated cart
 // Arguments:
-// 		cartID: the cart ID
-// 		item: the line item to edit. Must have an ID, quantity, and product ID
+//
+//	cartID: the cart ID
+//	item: the line item to edit. Must have an ID, quantity, and product ID
 func (bc *Client) CartEditItem(cartID string, item LineItem) (*Cart, error) {
 	var body []byte
 	body, _ = json.Marshal(map[string]interface{}{
@@ -171,8 +173,10 @@ func (bc *Client) CartEditItem(cartID string, item LineItem) (*Cart, error) {
 
 // DeleteItem deletes a line item from a cart, returns the updated cart
 // Arguments:
-// 		cartID: the cart ID
-// 		item: the line item, must have an existing line item ID
+//
+//	cartID: the cart ID
+//	item: the line item, must have an existing line item ID
+//
 // returns nil for empty cart
 func (bc *Client) CartDeleteItem(cartID string, item LineItem) (*Cart, error) {
 	req := bc.getAPIRequest(http.MethodDelete, "/v3/carts/"+cartID+"/items/"+item.ID+"?include=redirect_urls", nil)
