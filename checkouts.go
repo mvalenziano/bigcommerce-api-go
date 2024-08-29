@@ -3,6 +3,7 @@ package bigcommerce
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 )
@@ -38,11 +39,13 @@ type Tax struct {
 
 type CheckoutDiscountRequest struct {
 	Carts struct {
-		Discounts []struct {
-			DiscountedAmount float64 `json:"discounted_amount"`
-			Name             string  `json:"name"`
-		} `json:"discounts"`
+		Discounts []DiscountLine `json:"discounts"`
 	} `json:"carts"`
+}
+
+type DiscountLine struct {
+	DiscountedAmount float64 `json:"discounted_amount"`
+	Name             string  `json:"name"`
 }
 
 // GetCart gets a cart by ID from BigCommerce and returns it
@@ -69,9 +72,14 @@ func (bc *Client) GetCheckout(checkoutID string) (*Checkout, error) {
 }
 
 func (bc *Client) AddDiscountToCheckout(checkoutID string, discountAmount float64, discountName string) (*Cart, error) {
-	var bodyRequestStruct CheckoutDiscountRequest
-	bodyRequestStruct.Carts.Discounts[0].DiscountedAmount = discountAmount
-	bodyRequestStruct.Carts.Discounts[0].Name = discountName
+	bodyRequestStruct := CheckoutDiscountRequest{}
+	discount := DiscountLine{}
+	discount.DiscountedAmount = discountAmount
+	discount.Name = discountName
+
+	log.Println("Discount: ", discount)
+	bodyRequestStruct.Carts.Discounts = make([]DiscountLine, 1)
+	bodyRequestStruct.Carts.Discounts = append(bodyRequestStruct.Carts.Discounts, discount)
 
 	var body []byte
 	body, _ = json.Marshal(bodyRequestStruct)
