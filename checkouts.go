@@ -40,7 +40,7 @@ type Tax struct {
 type CheckoutDiscountRequest struct {
 	Carts struct {
 		Discounts []DiscountLine `json:"discounts"`
-	} `json:"carts"`
+	} `json:"cart"`
 }
 
 type DiscountLine struct {
@@ -83,6 +83,7 @@ func (bc *Client) AddDiscountToCheckout(checkoutID string, discountAmount float6
 
 	var body []byte
 	body, _ = json.Marshal(bodyRequestStruct)
+	log.Println("Body: ", string(body))
 	req := bc.getAPIRequest(http.MethodPost, "/v3/checkouts/"+checkoutID+"/discounts", bytes.NewReader(body))
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
