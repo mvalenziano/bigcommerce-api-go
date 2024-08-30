@@ -79,7 +79,7 @@ func (bc *Client) AddDiscountToCheckout(checkoutID string, discountAmount float6
 
 	log.Println("Discount: ", discount)
 	bodyRequestStruct.Carts.Discounts = make([]DiscountLine, 1)
-	bodyRequestStruct.Carts.Discounts = append(bodyRequestStruct.Carts.Discounts, discount)
+	bodyRequestStruct.Carts.Discounts[0] = discount
 
 	var body []byte
 	body, _ = json.Marshal(bodyRequestStruct)
