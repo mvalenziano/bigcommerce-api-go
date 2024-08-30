@@ -70,6 +70,7 @@ type CartCoupon struct {
 type Discount struct {
 	ID               interface{} `json:"id"`
 	DiscountedAmount float64     `json:"discounted_amount"`
+	Name             string      `json:"name"`
 }
 
 type ErrorResult struct {
