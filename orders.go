@@ -262,14 +262,6 @@ type CVVResult struct {
 	Message string `json:"message"`
 }
 
-type GiftCertificate struct {
-	Code             string  `json:"code"`
-	OriginalBalance  float64 `json:"original_balance"`
-	StartingBalance  float64 `json:"starting_balance"`
-	RemainingBalance float64 `json:"remaining_balance"`
-	Status           string  `json:"status"`
-}
-
 type CreditCard struct {
 	CardType        string `json:"card_type"`
 	CardIIN         string `json:"card_iin"`
