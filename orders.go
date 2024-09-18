@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Order struct {
@@ -296,6 +297,38 @@ type OrderTransaction struct {
 	CustomProviderFieldResult interface{}      `json:"custom_provider_field_result"`
 }
 
+type Refund struct {
+	ID                         int       `json:"id"`
+	OrderID                    int       `json:"order_id"`
+	UserID                     int       `json:"user_id"`
+	Created                    time.Time `json:"created"`
+	Reason                     string    `json:"reason"`
+	TotalAmount                float64   `json:"total_amount"`
+	TotalTax                   float64   `json:"total_tax"`
+	UsesMerchantOverrideValues bool      `json:"uses_merchant_override_values"`
+	Payments                   []Payment `json:"payments"`
+	Items                      []Item    `json:"items"`
+}
+
+type Payment struct {
+	ID              int     `json:"id"`
+	ProviderID      string  `json:"provider_id"`
+	Amount          float64 `json:"amount"`
+	Offline         bool    `json:"offline"`
+	IsDeclined      bool    `json:"is_declined"`
+	DeclinedMessage string  `json:"declined_message"`
+	TransactionID   string  `json:"transaction_id"`
+}
+
+type Item struct {
+	ItemType        string        `json:"item_type"`
+	ItemID          int           `json:"item_id"`
+	Quantity        int           `json:"quantity"`
+	RequestedAmount interface{}   `json:"requested_amount"`
+	Reason          string        `json:"reason"`
+	Adjustments     []interface{} `json:"adjustments"`
+}
+
 // GetOrders returns all orders using filters
 // filters: request query parameters for BigCommerce orders endpoint, for example {"customer_id": "41"}
 func (bc *Client) GetOrders(filters map[string]string) ([]Order, error) {
@@ -366,6 +399,32 @@ func (bc *Client) GetOrder(orderID int64) (*Order, error) {
 	}
 	order.Coupons = coupons
 	return &order, nil
+}
+
+func (bc *Client) GetRefund(refundID int64) (*Refund, error) {
+	url := "/v3/orders/payment_actions/refunds/" + strconv.FormatInt(refundID, 10)
+
+	req := bc.getAPIRequest(http.MethodGet, url, nil)
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		return nil, err
+	}
+	var response struct {
+		Data Refund `json:"data"`
+	}
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.Data, nil
 }
 
 func (bc *Client) CreateOrderShipment(orderID int64, orderShipment *OrderShipment) (OrderShipmentResponse, error) {
