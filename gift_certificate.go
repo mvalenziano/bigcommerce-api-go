@@ -11,22 +11,22 @@ import (
 
 // map gift certificate structs
 type GiftCertificate struct {
-	ID           int       `json:"id,omitempty"`
-	Code         string    `json:"code"`
-	Amount       string    `json:"amount"`
-	Status       string    `json:"status,omitempty"`
-	Balance      string    `json:"balance"`
-	ToName       string    `json:"to_name,omitempty"`
-	OrderID      int       `json:"order_id,omitempty"`
-	Template     string    `json:"template,omitempty"`
-	Message      string    `json:"message,omitempty"`
-	ToEmail      string    `json:"to_email,omitempty"`
-	FromName     string    `json:"from_name,omitempty"`
-	FromEmail    string    `json:"from_email,omitempty"`
-	CustomerID   int       `json:"customer_id,omitempty"`
-	ExpiryDate   time.Time `json:"expiry_date,omitempty"`   // could be time.Time if parsed
-	PurchaseDate time.Time `json:"purchase_date,omitempty"` // could be time.Time if parsed
-	CurrencyCode string    `json:"currency_code,omitempty"`
+	ID           int        `json:"id,omitempty"`
+	Code         string     `json:"code"`
+	Amount       string     `json:"amount"`
+	Status       string     `json:"status,omitempty"`
+	Balance      string     `json:"balance"`
+	ToName       string     `json:"to_name,omitempty"`
+	OrderID      int        `json:"order_id,omitempty"`
+	Template     string     `json:"template,omitempty"`
+	Message      string     `json:"message,omitempty"`
+	ToEmail      string     `json:"to_email,omitempty"`
+	FromName     string     `json:"from_name,omitempty"`
+	FromEmail    string     `json:"from_email,omitempty"`
+	CustomerID   int        `json:"customer_id,omitempty"`
+	ExpiryDate   *time.Time `json:"expiry_date,omitempty"`   // could be time.Time if parsed
+	PurchaseDate *time.Time `json:"purchase_date,omitempty"` // could be time.Time if parsed
+	CurrencyCode string     `json:"currency_code,omitempty"`
 }
 
 // GetCart gets a cart by ID from BigCommerce and returns it
