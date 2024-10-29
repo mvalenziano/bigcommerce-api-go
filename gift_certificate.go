@@ -16,7 +16,7 @@ type GiftCertificate struct {
 	Status       string `json:"status,omitempty"`
 	Balance      string `json:"balance"`
 	ToName       string `json:"to_name,omitempty"`
-	OrderID      int    `json:"order_id,omitempty"`
+	OrderID      string `json:"order_id,omitempty"`
 	Template     string `json:"template,omitempty"`
 	Message      string `json:"message,omitempty"`
 	ToEmail      string `json:"to_email,omitempty"`
