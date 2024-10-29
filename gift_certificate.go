@@ -23,8 +23,8 @@ type GiftCertificate struct {
 	FromName     string `json:"from_name,omitempty"`
 	FromEmail    string `json:"from_email,omitempty"`
 	CustomerID   string `json:"customer_id,omitempty"`
-	ExpiryDate   *int   `json:"expiry_date,omitempty"`   // could be time.Time if parsed
-	PurchaseDate *int   `json:"purchase_date,omitempty"` // could be time.Time if parsed
+	ExpiryDate   string `json:"expiry_date,omitempty"`   // could be time.Time if parsed
+	PurchaseDate string `json:"purchase_date,omitempty"` // could be time.Time if parsed
 	CurrencyCode string `json:"currency_code,omitempty"`
 }
 
