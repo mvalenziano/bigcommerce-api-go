@@ -83,7 +83,34 @@ func (bc *Client) CreateGiftCertificate(giftCertificate *GiftCertificate) (*Gift
 
 // update a gift certificate
 func (bc *Client) UpdateGiftCertificate(giftCertificate *GiftCertificate) (*GiftCertificate, error) {
+
 	body, _ := json.Marshal(giftCertificate)
+	req := bc.getAPIRequest(http.MethodPut, fmt.Sprintf("/v2/gift_certificates/%d", giftCertificate.ID), bytes.NewReader(body))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	b, err := processBody(res)
+	if err != nil {
+		return nil, err
+	}
+
+	var giftCertificateResponse GiftCertificate
+	err = json.Unmarshal(b, &giftCertificateResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &giftCertificateResponse, nil
+}
+
+func (bc *Client) UpdateGiftCertificateAmount(giftCertificate *GiftCertificate) (*GiftCertificate, error) {
+
+	newGiftCertificate := GiftCertificate{}
+	newGiftCertificate.Amount = giftCertificate.Balance
+	newGiftCertificate.Balance = giftCertificate.Balance
+
+	body, _ := json.Marshal(newGiftCertificate)
 	req := bc.getAPIRequest(http.MethodPut, fmt.Sprintf("/v2/gift_certificates/%d", giftCertificate.ID), bytes.NewReader(body))
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
