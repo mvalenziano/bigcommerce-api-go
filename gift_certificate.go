@@ -107,6 +107,7 @@ func (bc *Client) UpdateGiftCertificate(giftCertificate *GiftCertificate) (*Gift
 func (bc *Client) UpdateGiftCertificateAmount(giftCertificate *GiftCertificate) (*GiftCertificate, error) {
 
 	newGiftCertificate := GiftCertificate{}
+	newGiftCertificate.Code = giftCertificate.Code
 	newGiftCertificate.Amount = giftCertificate.Balance
 	newGiftCertificate.Balance = giftCertificate.Balance
 
