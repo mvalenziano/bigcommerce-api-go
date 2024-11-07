@@ -104,12 +104,16 @@ func (bc *Client) UpdateGiftCertificate(giftCertificate *GiftCertificate) (*Gift
 	return &giftCertificateResponse, nil
 }
 
-func (bc *Client) UpdateGiftCertificateAmount(giftCertificate *GiftCertificate) (*GiftCertificate, error) {
+func (bc *Client) UpdateGiftCertificateAmount(giftCertificate *GiftCertificate, expired bool) (*GiftCertificate, error) {
 
 	newGiftCertificate := GiftCertificate{}
 	newGiftCertificate.Code = giftCertificate.Code
 	newGiftCertificate.Amount = giftCertificate.Balance
 	newGiftCertificate.Balance = giftCertificate.Balance
+	newGiftCertificate.Status = "active"
+	if expired {
+		newGiftCertificate.Status = "expired"
+	}
 
 	body, _ := json.Marshal(newGiftCertificate)
 	req := bc.getAPIRequest(http.MethodPut, fmt.Sprintf("/v2/gift_certificates/%d", giftCertificate.ID), bytes.NewReader(body))
