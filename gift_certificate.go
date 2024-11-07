@@ -112,6 +112,8 @@ func (bc *Client) UpdateGiftCertificateAmount(giftCertificate *GiftCertificate, 
 	newGiftCertificate.Balance = giftCertificate.Balance
 	newGiftCertificate.Status = "active"
 	if expired {
+		newGiftCertificate.Amount = "0"
+		newGiftCertificate.Balance = "0"
 		newGiftCertificate.Status = "expired"
 	}
 
