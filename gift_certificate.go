@@ -116,7 +116,7 @@ func (bc *Client) UpdateGiftCertificateAmount(giftCertificate *GiftCertificate, 
 	}
 
 	body, _ := json.Marshal(newGiftCertificate)
-	log.Println("update payload: ", body)
+	log.Println("update payload: ", string(body))
 	req := bc.getAPIRequest(http.MethodPut, fmt.Sprintf("/v2/gift_certificates/%d", giftCertificate.ID), bytes.NewReader(body))
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
