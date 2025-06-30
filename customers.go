@@ -12,23 +12,35 @@ import (
 
 // Customer is a struct for the BigCommerce Customer API
 type Customer struct {
-	ID               int64       `json:"id"`
-	Company          string      `json:"company"`
-	Firstname        string      `json:"first_name"`
-	Lastname         string      `json:"last_name"`
-	Email            string      `json:"email"`
-	Phone            string      `json:"phone"`
-	FormFields       interface{} `json:"form_fields"`
-	DateCreated      string      `json:"date_created"`
-	DateModified     string      `json:"date_modified"`
-	StoreCredit      string      `json:"store_credit"`
-	RegistrationIP   string      `json:"registration_ip_address"`
-	CustomerGroup    int64       `json:"customer_group_id"`
-	Notes            string      `json:"notes"`
-	TaxExempt        string      `json:"tax_exempt_category"`
-	ResetPassword    bool        `json:"reset_pass_on_login"`
-	AcceptsMarketing bool        `json:"accepts_marketing"`
-	Addresses        []Address   `json:"addresses"`
+	ID                                      int64          `json:"id"`
+	Company                                 string         `json:"company"`
+	Firstname                               string         `json:"first_name"`
+	Lastname                                string         `json:"last_name"`
+	Email                                   string         `json:"email"`
+	Phone                                   string         `json:"phone"`
+	FormFields                              []interface{}  `json:"form_fields"`
+	DateCreated                             string         `json:"date_created"`
+	DateModified                            string         `json:"date_modified"`
+	StoreCredit                             string         `json:"store_credit,omitempty"`
+	RegistrationIP                          string         `json:"registration_ip_address"`
+	CustomerGroup                           int64          `json:"customer_group_id"`
+	Notes                                   string         `json:"notes"`
+	TaxExempt                               string         `json:"tax_exempt_category"`
+	ResetPassword                           bool           `json:"reset_pass_on_login,omitempty"`
+	AcceptsMarketing                        bool           `json:"accepts_marketing,omitempty"`
+	Addresses                               []Address      `json:"addresses"`
+	AddressCount                            int            `json:"address_count"`
+	Attributes                              []interface{}  `json:"attributes"`
+	AttributeCount                          int            `json:"attribute_count"`
+	Authentication                          Authentication `json:"authentication"`
+	AcceptsProductReviewAbandonedCartEmails bool           `json:"accepts_product_review_abandoned_cart_emails"`
+	OriginChannelID                         int            `json:"origin_channel_id"`
+	ChannelIDs                              []int          `json:"channel_ids,omitempty"`
+}
+
+// Authentication represents the authentication settings for a customer
+type Authentication struct {
+	ForcePasswordReset bool `json:"force_password_reset"`
 }
 
 type SaveAccountPayload struct {
@@ -59,20 +71,20 @@ type SaveAccountPayload struct {
 }
 
 type CreateAccountPayload struct {
-	Company                                 string         `json:"company,omitempty"`
-	FirstName                               string         `json:"first_name,omitempty"`
-	LastName                                string         `json:"last_name,omitempty"`
-	Email                                   string         `json:"email,omitempty"`
-	Phone                                   string         `json:"phone,omitempty"`
-	Notes                                   string         `json:"notes,omitempty"`
-	TaxExemptCategory                       string         `json:"tax_exempt_category,omitempty"`
-	CustomerGroupID                         int64          `json:"customer_group_id,omitempty"`
-	Addresses                               []Address      `json:"addresses,omitempty"`
-	Authentication                          Authentication `json:"authentication,omitempty"`
-	AcceptsProductReviewAbandonedCartEmails bool           `json:"accepts_product_review_abandoned_cart_emails,omitempty"`
-	StoreCreditAmounts                      []StoreCredit  `json:"store_credit_amounts,omitempty"`
-	OriginChannelID                         int            `json:"origin_channel_id,omitempty"`
-	ChannelIDs                              []int          `json:"channel_ids,omitempty"`
+	Company                                 string                `json:"company,omitempty"`
+	FirstName                               string                `json:"first_name,omitempty"`
+	LastName                                string                `json:"last_name,omitempty"`
+	Email                                   string                `json:"email,omitempty"`
+	Phone                                   string                `json:"phone,omitempty"`
+	Notes                                   string                `json:"notes,omitempty"`
+	TaxExemptCategory                       string                `json:"tax_exempt_category,omitempty"`
+	CustomerGroupID                         int64                 `json:"customer_group_id,omitempty"`
+	Addresses                               []Address             `json:"addresses,omitempty"`
+	Authentication                          AccountAuthentication `json:"authentication,omitempty"`
+	AcceptsProductReviewAbandonedCartEmails bool                  `json:"accepts_product_review_abandoned_cart_emails,omitempty"`
+	StoreCreditAmounts                      []StoreCredit         `json:"store_credit_amounts,omitempty"`
+	OriginChannelID                         int                   `json:"origin_channel_id,omitempty"`
+	ChannelIDs                              []int                 `json:"channel_ids,omitempty"`
 }
 
 // StoreCredit is for CreateAccountPayload's store_credit_ammounts field
@@ -81,7 +93,7 @@ type StoreCredit struct {
 }
 
 // AccountAuthentication is for CreateAccountPayload's authentication field
-type Authentication struct {
+type AccountAuthentication struct {
 	ForcePasswordReset bool   `json:"force_password_reset"`
 	Password           string `json:"new_password"`
 }
@@ -286,7 +298,7 @@ func (bc *Client) CustomerGetFormFields(customerID int64) ([]FormField, error) {
 }
 
 func (bc *Client) GetCustomerByID(customerID int64) (*Customer, error) {
-	req := bc.getAPIRequest(http.MethodGet, fmt.Sprintf("/v3/customers?id:in=%d", customerID), nil)
+	req := bc.getAPIRequest(http.MethodGet, fmt.Sprintf("/v3/customers?include=attributes,formfields,addresses&id:in=%d", customerID), nil)
 	res, err := bc.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
