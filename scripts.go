@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -42,7 +42,7 @@ func (bc *Client) CreateScript(s *Script) (*Script, error) {
 	var sRes struct {
 		Data Script `json:"data"`
 	}
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return s, err
 	}
@@ -63,7 +63,7 @@ func (bc *Client) GetScriptByID(uuid string) (*Script, error) {
 	var sRes struct {
 		Data Script `json:"data"`
 	}
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (bc *Client) GetScripts() ([]Script, error) {
 	var sRes struct {
 		Data []Script `json:"data"`
 	}
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}

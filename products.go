@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -261,7 +261,7 @@ func (bc *Client) GetProducts(args map[string]string, page int) ([]Product, bool
 		return nil, false, ErrNoContent
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, false, err
 	}
@@ -302,7 +302,7 @@ func (bc *Client) GetVariants(args map[string]string, page int) ([]Variant, bool
 		return nil, false, ErrNoContent
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, false, err
 	}

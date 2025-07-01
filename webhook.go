@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -60,7 +60,7 @@ type Webhook struct {
 // []byte - the raw payload from the BigCommerce API
 // error - the error, if any
 func GetWebhookPayload(r *http.Request) (*WebhookPayload, []byte, error) {
-	bytes, err := ioutil.ReadAll(r.Body)
+	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, nil, err
 	}

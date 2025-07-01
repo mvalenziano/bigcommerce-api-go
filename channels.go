@@ -3,7 +3,7 @@ package bigcommerce
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -61,7 +61,7 @@ func (bc *Client) GetChannels(page int) ([]Channel, bool, error) {
 		return nil, false, ErrNoContent
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, false, err
 	}

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -39,7 +39,7 @@ func (bc *Client) CreateWidgetTemplate(pt *PageBuilderTemplate) (*PageBuilderTem
 	var ptRes struct {
 		Data PageBuilderTemplate `json:"data"`
 	}
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return pt, err
 	}
@@ -60,7 +60,7 @@ func (bc *Client) GetWidgetTemplates() ([]PageBuilderTemplate, error) {
 	var ptRes struct {
 		Data []PageBuilderTemplate `json:"data"`
 	}
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}

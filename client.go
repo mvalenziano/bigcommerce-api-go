@@ -3,7 +3,6 @@ package bigcommerce
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -66,7 +65,7 @@ func processBody(res *http.Response) ([]byte, error) {
 	if res.StatusCode == http.StatusNotFound {
 		return nil, ErrNotFound
 	}
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
