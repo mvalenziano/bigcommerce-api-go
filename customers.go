@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -343,4 +344,98 @@ func (bc *Client) GetCustomerByEmail(email string) (*Customer, error) {
 		return nil, ErrNotFound
 	}
 	return &ret.Data[0], nil // return the first customer
+}
+
+// CustomerAttribute represents a single customer attribute in BigCommerce
+type CustomerAttribute struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Type         string `json:"type"`
+	DateCreated  string `json:"date_created"`
+	DateModified string `json:"date_modified"`
+}
+
+// CustomerAttributesResponse represents the response from the customer attributes endpoint
+type CustomerAttributesResponse struct {
+	Data []CustomerAttribute `json:"data"`
+	Meta struct {
+		Pagination struct {
+			Total       int `json:"total"`
+			Count       int `json:"count"`
+			PerPage     int `json:"per_page"`
+			CurrentPage int `json:"current_page"`
+			TotalPages  int `json:"total_pages"`
+		} `json:"pagination"`
+	} `json:"meta"`
+}
+
+// get customers attributes
+func (bc *Client) GetCustomerAttributes() ([]CustomerAttribute, error) {
+
+	page := 1
+	limit := 100
+	var attributes []CustomerAttribute
+
+	// Continue fetching pages until there are no more results
+	for {
+		url := fmt.Sprintf("/v3/customers/attributes?page=%d&limit=%d", page, limit)
+		req := bc.getAPIRequest(http.MethodGet, url, nil)
+		res, err := bc.HTTPClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+		body, err := processBody(res)
+		if err != nil {
+			return nil, err
+		}
+		var ret CustomerAttributesResponse
+		err = json.Unmarshal(body, &ret)
+		if err != nil {
+			return nil, err
+		}
+		attributes = append(attributes, ret.Data...)
+		if ret.Meta.Pagination.CurrentPage >= ret.Meta.Pagination.TotalPages {
+			break
+		}
+		page++
+	}
+	return attributes, nil
+}
+
+// CustomerAttributeValue represents a customer attribute value to be updated
+type CustomerAttributeValue struct {
+	AttributeID int    `json:"attribute_id"`
+	Value       string `json:"value"`
+	CustomerID  int64  `json:"customer_id"`
+}
+
+// UpsertCustomerAttributeValue updates or inserts multiple customer attribute values at once
+func (bc *Client) UpsertCustomerAttributeValue(attributeValues []CustomerAttributeValue) error {
+	url := "/v3/customers/attribute-values"
+
+	// Convert the attributeValues to JSON
+	jsonData, err := json.Marshal(attributeValues)
+	if err != nil {
+		return err
+	}
+
+	// Create the request
+	req := bc.getAPIRequest(http.MethodPut, url, bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	// Check for errors in the response
+	if res.StatusCode >= 400 {
+		body, _ := io.ReadAll(res.Body)
+		return fmt.Errorf("error updating customer attribute values: %s, status code: %d", string(body), res.StatusCode)
+	}
+
+	return nil
 }
