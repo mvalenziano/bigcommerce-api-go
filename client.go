@@ -2,6 +2,7 @@ package bigcommerce
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -72,7 +73,7 @@ func processBody(res *http.Response) ([]byte, error) {
 	res.Body.Close()
 	if res.StatusCode > 299 {
 		log.Printf("%s %s %s", res.Request.Method, res.Request.URL, string(body))
-		return body, errors.New(res.Status)
+		return body, fmt.Errorf("%s %s %s", res.Request.Method, res.Request.URL, string(body))
 	}
 	return body, nil
 }
