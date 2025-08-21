@@ -149,6 +149,7 @@ type OrderProduct struct {
 	ConfigurableFields   []interface{}     `json:"configurable_fields"`
 	EventName            interface{}       `json:"event_name"`
 	EventDate            interface{}       `json:"event_date"`
+	Modifiers            []ProductModifier `json:"modifiers"`
 }
 
 type ProductDiscount struct {
@@ -329,6 +330,90 @@ type Item struct {
 	Adjustments     []interface{} `json:"adjustments"`
 }
 
+type CreateOrderAddress struct {
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
+	Company        string `json:"company"`
+	Street1        string `json:"street_1"`
+	Street2        string `json:"street_2,omitempty"`
+	City           string `json:"city"`
+	State          string `json:"state"`
+	Zip            string `json:"zip"`
+	Country        string `json:"country,omitempty"`
+	CountryIso2    string `json:"country_iso2,omitempty"`
+	Phone          string `json:"phone"`
+	Email          string `json:"email"`
+	ShippingMethod string `json:"shipping_method,omitempty"`
+}
+
+type CreateOrderProductOption struct {
+	ID                   int64  `json:"id"`
+	Value                int64  `json:"value"`
+	DisplayName          string `json:"display_name,omitempty"`
+	DisplayNameCustomer  string `json:"display_name_customer,omitempty"`
+	DisplayValueCustomer string `json:"display_value_customer,omitempty"`
+	DisplayNameMerchant  string `json:"display_name_merchant,omitempty"`
+	DisplayValue         string `json:"display_value,omitempty"`
+	DisplayValueMerchant string `json:"display_value_merchant,omitempty"`
+}
+
+type CreateOrderProduct struct {
+	ProductID          int64                      `json:"product_id,omitempty"`
+	Name               string                     `json:"name,omitempty"`
+	NameCustomer       string                     `json:"name_customer,omitempty"`
+	NameMerchant       string                     `json:"name_merchant,omitempty"`
+	Quantity           int                        `json:"quantity"`
+	PriceIncTax        string                     `json:"price_inc_tax"`
+	PriceExTax         string                     `json:"price_ex_tax"`
+	Upc                string                     `json:"upc,omitempty"`
+	VariantID          int                        `json:"variant_id,omitempty"`
+	WrappingId         int                        `json:"wrapping_id,omitempty"`
+	WrappingName       string                     `json:"wrapping_name,omitempty"`
+	WrappingMessage    string                     `json:"wrapping_message,omitempty"`
+	WrappingCostExTax  string                     `json:"wrapping_cost_ex_tax,omitempty"`
+	WrappingCostIncTax string                     `json:"wrapping_cost_inc_tax,omitempty"`
+	ProductOptions     []CreateOrderProductOption `json:"product_options,omitempty"`
+}
+
+type CreateOrder struct {
+	StatusID           int64                `json:"status_id"`
+	CustomerID         int64                `json:"customer_id"`
+	BillingAddress     CreateOrderAddress   `json:"billing_address"`
+	ShippingAddresses  []CreateOrderAddress `json:"shipping_addresses"`
+	Products           []CreateOrderProduct `json:"products"`
+	OrderIsDigital     bool                 `json:"order_is_digital,omitempty"`
+	PaymentMethod      string               `json:"payment_method"`
+	StaffNotes         string               `json:"staff_notes,omitempty"`
+	BaseHandlingCost   string               `json:"base_handling_cost,omitempty"`
+	BaseShippingCost   string               `json:"base_shipping_cost,omitempty"`
+	BaseWrappingCost   string               `json:"base_wrapping_cost,omitempty"`
+	ChannelID          int64                `json:"channel_id,omitempty"`
+	CustomerMessage    string               `json:"customer_message,omitempty"`
+	DiscountAmount     string               `json:"discount_amount,omitempty"`
+	OrderSource        string               `json:"order_source,omitempty"`
+	ExternalMerchantID any                  `json:"external_merchant_id,omitempty"`
+	ExternalSource     any                  `json:"external_source,omitempty"`
+	GeoipCountry       string               `json:"geoip_country,omitempty"`
+	GeoipCountryIso2   string               `json:"geoip_country_iso2,omitempty"`
+	HandlingCostExTax  string               `json:"handling_cost_ex_tax,omitempty"`
+	HandlingCostIncTax string               `json:"handling_cost_inc_tax,omitempty"`
+	ItemsTotal         int                  `json:"items_total,omitempty"`
+	ItemsShipped       int                  `json:"items_shipped,omitempty"`
+	PaymentProviderID  string               `json:"payment_provider_id,omitempty"`
+	ShippingCostExTax  string               `json:"shipping_cost_ex_tax,omitempty"`
+	ShippingCostIncTax string               `json:"shipping_cost_inc_tax,omitempty"`
+	RefundedAmount     string               `json:"refunded_amount,omitempty"`
+	SubtotalExTax      string               `json:"subtotal_ex_tax,omitempty"`
+	SubtotalIncTax     string               `json:"subtotal_inc_tax,omitempty"`
+	SubtotalTax        string               `json:"subtotal_tax,omitempty"`
+	ExternalOrderId    string               `json:"external_order_id,omitempty"`
+	TotalExTax         string               `json:"total_ex_tax,omitempty"`
+	TotalIncTax        string               `json:"total_inc_tax,omitempty"`
+	TotalTax           string               `json:"total_tax,omitempty"`
+	WrappingCostExTax  string               `json:"wrapping_cost_ex_tax,omitempty"`
+	WrappingCostIncTax string               `json:"wrapping_cost_inc_tax,omitempty"`
+}
+
 // GetOrders returns all orders using filters
 // filters: request query parameters for BigCommerce orders endpoint, for example {"customer_id": "41"}
 func (bc *Client) GetOrders(filters map[string]string) ([]Order, error) {
@@ -452,6 +537,35 @@ func (bc *Client) CreateOrderShipment(orderID int64, orderShipment *OrderShipmen
 	return orderShipmentResponse, nil
 }
 
+func (bc *Client) GetOrderShipment(orderID int64, page uint, limit uint) ([]OrderShipmentResponse, error) {
+	apiUrl := "/v2/orders/" + strconv.FormatInt(orderID, 10) + "/shipments?"
+	query := []string{
+		fmt.Sprintf("page=%d", page),
+		fmt.Sprintf("limit=%d", limit),
+	}
+
+	apiUrl = apiUrl + strings.Join(query, "&")
+
+	req := bc.getAPIRequest(http.MethodGet, apiUrl, nil)
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		return nil, err
+	}
+
+	var orderShipmentResponse []OrderShipmentResponse
+	err = json.Unmarshal(body, &orderShipmentResponse)
+	if err != nil {
+		return nil, err
+	}
+	return orderShipmentResponse, nil
+}
+
 // GetOrderProducts returns all products for a given order
 func (bc *Client) GetOrderProducts(orderID int64) ([]OrderProduct, error) {
 	url := "/v2/orders/" + strconv.FormatInt(orderID, 10) + "/products"
@@ -467,12 +581,22 @@ func (bc *Client) GetOrderProducts(orderID int64) ([]OrderProduct, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	var products []OrderProduct
 	err = json.Unmarshal(body, &products)
 	if err != nil {
 		return nil, err
 	}
+
+	// get product modifiers
+	for i := range products {
+		var modifiers []ProductModifier
+		modifiers, err = bc.GetProductModifiers(products[i].ProductID)
+		if err != nil {
+			return nil, err
+		}
+		products[i].Modifiers = modifiers
+	}
+
 	return products, nil
 }
 
@@ -552,4 +676,31 @@ func (bc *Client) GetOrderTransactions(orderID int64) ([]OrderTransaction, error
 		return nil, err
 	}
 	return response.Data, nil
+}
+
+func (bc *Client) CreateOrder(order *CreateOrder) (Order, error) {
+	payload, err := json.Marshal(order)
+
+	if err != nil {
+		return Order{}, err
+	}
+	req := bc.getAPIRequest(http.MethodPost, "v2/orders", bytes.NewBuffer(payload))
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return Order{}, err
+	}
+
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		return Order{}, err
+	}
+
+	var response Order
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return Order{}, err
+	}
+	return response, nil
 }

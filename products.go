@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -214,6 +214,57 @@ type ChannelAssignment struct {
 	ChannelID int64 `json:"channel_id,omitempty"`
 }
 
+// ProductModifier represents a BigCommerce product modifier
+type ProductModifier struct {
+	ID             int64                 `json:"id,omitempty"`
+	ProductID      int64                 `json:"product_id,omitempty"`
+	Name           string                `json:"name,omitempty"`
+	DisplayName    string                `json:"display_name,omitempty"`
+	Type           string                `json:"type,omitempty"`
+	Required       bool                  `json:"required"`
+	SortOrder      int                   `json:"sort_order,omitempty"`
+	Config         interface{}           `json:"config,omitempty"`
+	OptionValues   []ModifierOptionValue `json:"option_values,omitempty"`
+	SharedOptionID int64                 `json:"shared_option_id,omitempty"`
+}
+
+// ModifierOptionValue represents an option value for a product modifier
+type ModifierOptionValue struct {
+	ID        int64             `json:"id,omitempty"`
+	OptionID  int64             `json:"option_id,omitempty"`
+	Label     string            `json:"label,omitempty"`
+	SortOrder int               `json:"sort_order,omitempty"`
+	ValueData interface{}       `json:"value_data,omitempty"`
+	IsDefault bool              `json:"is_default"`
+	Adjusters ModifierAdjusters `json:"adjusters,omitempty"`
+}
+
+// ModifierAdjusters represents the adjusters for a modifier option value
+type ModifierAdjusters struct {
+	Price              *PriceAdjuster     `json:"price,omitempty"`
+	Weight             *WeightAdjuster    `json:"weight,omitempty"`
+	ImageURL           string             `json:"image_url,omitempty"`
+	PurchasingDisabled PurchasingDisabled `json:"purchasing_disabled,omitempty"`
+}
+
+// PriceAdjuster represents a price adjustment
+type PriceAdjuster struct {
+	Adjuster      string  `json:"adjuster,omitempty"`
+	AdjusterValue float64 `json:"adjuster_value,omitempty"`
+}
+
+// WeightAdjuster represents a weight adjustment
+type WeightAdjuster struct {
+	Adjuster      string  `json:"adjuster,omitempty"`
+	AdjusterValue float64 `json:"adjuster_value,omitempty"`
+}
+
+// PurchasingDisabled represents purchasing disabled status
+type PurchasingDisabled struct {
+	Status  bool   `json:"status"`
+	Message string `json:"message,omitempty"`
+}
+
 // GetAllProducts gets all products from BigCommerce
 // args is a key-value map of additional arguments to pass to the API
 func (bc *Client) GetAllProducts(args map[string]string) ([]Product, error) {
@@ -261,7 +312,7 @@ func (bc *Client) GetProducts(args map[string]string, page int) ([]Product, bool
 		return nil, false, ErrNoContent
 	}
 
-	body, err := io.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, false, err
 	}
@@ -302,7 +353,7 @@ func (bc *Client) GetVariants(args map[string]string, page int) ([]Variant, bool
 		return nil, false, ErrNoContent
 	}
 
-	body, err := io.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, false, err
 	}
@@ -380,6 +431,34 @@ func (bc *Client) GetProductMetafields(productID int64) (map[string]Metafield, e
 		ret[mf.Key] = mf
 	}
 	return ret, nil
+}
+
+// GetProductModifiers gets all modifiers for a product from BigCommerce
+// productID: BigCommerce product ID to get modifiers for
+func (bc *Client) GetProductModifiers(productID int64) ([]ProductModifier, error) {
+	url := "/v3/catalog/products/" + strconv.FormatInt(productID, 10) + "/modifiers"
+	req := bc.getAPIRequest(http.MethodGet, url, nil)
+	res, err := bc.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+	body, err := processBody(res)
+	if err != nil {
+		return nil, err
+	}
+
+	var modifiersResponse struct {
+		Data []ProductModifier `json:"data,omitempty"`
+		Meta interface{}       `json:"meta,omitempty"`
+	}
+	err = json.Unmarshal(body, &modifiersResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return modifiersResponse.Data, nil
 }
 
 func (bc *Client) CreateProduct(payload *Product) (*Product, error) {
